@@ -1,202 +1,226 @@
-# Knowledge Geometry System (KGS) — Meta-Ontology
-# Defines the structure for building domain ontologies
+# ontologies/kgs.ttl
+# Purpose: Core KGS Σ (classes/properties) + SHACL guards Q for action safety,
+#          convergence, receipts, scope bounds, budgets, rate limits, chronology, calibration.
 
-@prefix kgs:  <http://knowledgegeometry.org/schema#> .
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix kgs:   <http://example.org/kgs#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
 
-# ============================================
-# Core KGS Classes
-# ============================================
+kgs:Ontology a owl:Ontology ;
+  dct:title "KGS Core Ontology (A = μ(O))" ;
+  owl:versionInfo "v1.1" ;
+  rdfs:comment "World-scale fixed-point decision ontology with guards and receipts." .
 
-kgs:Node a rdfs:Class ;
-  rdfs:label "KGS Node" ;
-  rdfs:comment "A node in the knowledge graph representing an entity or concept" .
+########## Classes ##########
+kgs:Observation      a owl:Class ; rdfs:comment "Typed observation at time t." .
+kgs:ObservedVariable a owl:Class ; rdfs:comment "Σ variable vocabulary." .
+kgs:Proposal         a owl:Class ; rdfs:comment "Sector proposal Γ with causal chain and confidence." .
+kgs:Action           a owl:Class ; rdfs:comment "Actuator command produced by μ respecting guards." .
+kgs:Mapping          a owl:Class ; rdfs:comment "Sector map μ_i; deterministic function signature metadata." .
+kgs:Guard            a owl:Class ; rdfs:comment "Hard invariant (Q): conservation, budgets, chronology, legality." .
+kgs:Iteration        a owl:Class ; rdfs:comment "One μ-iteration; convergence metrics." .
+kgs:Receipt          a owl:Class ; rdfs:comment "Merkle-chained provenance for O, Γ, Q, A, μ." .
+kgs:Sector           a owl:Class ; rdfs:comment "Domain sector (e.g., Semis, ComputeAI)." .
+kgs:Calibration      a owl:Class ; rdfs:comment "ECE and reliability metrics at operating points." .
+kgs:VariableDelta    a owl:Class ; rdfs:comment "Per-iteration change for a tracked variable with rate limits." .
+kgs:Budget           a owl:Class ; rdfs:comment "Budget cap context for a sector/time window." .
+kgs:ConvergenceCert  a owl:Class ; rdfs:comment "Bundle for ε and τ used by external sections (e.g., Akash)." .
+kgs:MetaRegeneration a owl:Class ; rdfs:comment "μ∞ regeneration step (meta receipts)." .
+kgs:CausalTag        a owl:Class ; rdfs:comment "Causal identification tag type." .
 
-kgs:Edge a rdfs:Class ;
-  rdfs:label "KGS Edge" ;
-  rdfs:comment "A relation between two nodes" .
+# CausalTag vocabulary
+kgs:RCT        a kgs:CausalTag ; rdfs:label "RandomizedControlledTrial" .
+kgs:IV         a kgs:CausalTag ; rdfs:label "InstrumentalVariable" .
+kgs:BackDoor   a kgs:CausalTag ; rdfs:label "BackDoorAdjustment" .
+kgs:FrontDoor  a kgs:CausalTag ; rdfs:label "FrontDoorAdjustment" .
+kgs:ObsAssumpt a kgs:CausalTag ; rdfs:label "ObservationalAssumptions" .
 
-kgs:Field a rdfs:Class ;
-  rdfs:label "KGS Field" ;
-  rdfs:comment "A geometric field representing a continuous property across the graph" .
+########## ObservedVariable keys (extend as needed) ##########
+kgs:key_tsmc_wspm               a kgs:ObservedVariable ; rdfs:label "tsmc_wspm" .
+kgs:key_asml_euv_shipments_ytd  a kgs:ObservedVariable ; rdfs:label "asml_euv_shipments_ytd" .
+kgs:key_node_mix_3nm            a kgs:ObservedVariable ; rdfs:label "node_mix_3nm" .
+kgs:key_h100_supply_index       a kgs:ObservedVariable ; rdfs:label "h100_supply_index" .
+kgs:key_inference_cost_per_1k   a kgs:ObservedVariable ; rdfs:label "inference_cost_per_1k_tokens" .
+kgs:key_gpu_spot_price_index    a kgs:ObservedVariable ; rdfs:label "gpu_spot_price_index" .
+kgs:key_queue_delay_minutes     a kgs:ObservedVariable ; rdfs:label "queue_delay_minutes" .
+kgs:key_packaging_capacity      a kgs:ObservedVariable ; rdfs:label "packaging_capacity" .
+kgs:key_adoption_index          a kgs:ObservedVariable ; rdfs:label "adoption_index" .
+kgs:key_churn_rate              a kgs:ObservedVariable ; rdfs:label "churn_rate" .
+kgs:key_price_index             a kgs:ObservedVariable ; rdfs:label "price_index" .
+kgs:key_quality_index           a kgs:ObservedVariable ; rdfs:label "quality_index" .
 
-kgs:Section a rdfs:Class ;
-  rdfs:label "KGS Section" ;
-  rdfs:comment "A section of the knowledge geometry (analogous to Γ/sections)" .
+########## Properties ##########
+# Observation
+kgs:variable     a owl:ObjectProperty ; rdfs:domain kgs:Observation ; rdfs:range  kgs:ObservedVariable ;
+  rdfs:comment "Σ key for this observation." .
+kgs:value        a owl:DatatypeProperty ; rdfs:domain kgs:Observation ; rdfs:range xsd:decimal ;
+  rdfs:comment "Observed numeric value." .
+kgs:unit         a owl:DatatypeProperty ; rdfs:domain kgs:Observation ; rdfs:range xsd:string ;
+  rdfs:comment "Unit label (align to QUDT/OM if desired)." .
+kgs:epochSeconds a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+  rdfs:comment "Unix epoch seconds for temporal ordering." .
 
-kgs:Receipt a rdfs:Class ;
-  rdfs:label "Provenance Receipt" ;
-  rdfs:comment "Cryptographic-like hash for determinism and auditability" .
+# Proposals & Actions
+kgs:proposes     a owl:ObjectProperty ; rdfs:domain kgs:Mapping ; rdfs:range kgs:Proposal .
+kgs:appliesTo    a owl:ObjectProperty ; rdfs:domain kgs:Proposal ; rdfs:range kgs:Observation .
+kgs:produces     a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain kgs:Proposal ; rdfs:range kgs:Action ;
+  rdfs:comment "Deterministic: one proposal → one action." .
+kgs:sector       a owl:ObjectProperty ; rdfs:range kgs:Sector ; rdfs:comment "Assigns entities to a domain sector." .
+kgs:command      a owl:DatatypeProperty ; rdfs:domain kgs:Action ; rdfs:range xsd:string .
+kgs:magnitude    a owl:DatatypeProperty ; rdfs:domain kgs:Action ; rdfs:range xsd:decimal .
+kgs:currency     a owl:DatatypeProperty ; rdfs:domain kgs:Action ; rdfs:range xsd:string .
+kgs:passivityMargin a owl:DatatypeProperty ; rdfs:domain kgs:Action ; rdfs:range xsd:decimal .
+kgs:issMargin       a owl:DatatypeProperty ; rdfs:domain kgs:Action ; rdfs:range xsd:decimal .
+kgs:hasCausalTag    a owl:ObjectProperty ; rdfs:domain kgs:Action ; rdfs:range kgs:CausalTag .
+kgs:placeboCheckPassed a owl:DatatypeProperty ; rdfs:domain kgs:Action ; rdfs:range xsd:boolean .
+kgs:basedOn      a owl:ObjectProperty ; rdfs:domain kgs:Action ; rdfs:range kgs:Observation ;
+  rdfs:comment "Action's immediate observational basis (for chronology checks)." .
 
-# ============================================
-# KGS Properties
-# ============================================
+# Iteration / Convergence
+kgs:iteration  a owl:ObjectProperty ; rdfs:range kgs:Iteration .
+kgs:epsilon    a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+kgs:tau        a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+kgs:deltaNorm  a owl:DatatypeProperty ; rdfs:domain kgs:Iteration ; rdfs:range xsd:decimal .
+kgs:residual   a owl:DatatypeProperty ; rdfs:domain kgs:Iteration ; rdfs:range xsd:decimal .
+kgs:alpha      a owl:DatatypeProperty ; rdfs:domain kgs:Iteration ; rdfs:range xsd:decimal .
 
-kgs:hasNode a rdf:Property ;
-  rdfs:label "has node" ;
-  rdfs:domain kgs:Section ;
-  rdfs:range kgs:Node ;
-  rdfs:comment "Links a section to its constituent nodes" .
+# Convergence certificate (for external sections)
+kgs:eps a owl:DatatypeProperty ; rdfs:domain kgs:ConvergenceCert ; rdfs:range xsd:decimal .
+kgs:rtol a owl:DatatypeProperty ; rdfs:domain kgs:ConvergenceCert ; rdfs:range xsd:decimal .
 
-kgs:hasEdge a rdf:Property ;
-  rdfs:label "has edge" ;
-  rdfs:domain kgs:Section ;
-  rdfs:range kgs:Edge ;
-  rdfs:comment "Links a section to its constituent edges" .
+# Receipts
+kgs:hO    a owl:DatatypeProperty ; rdfs:domain kgs:Receipt ; rdfs:range xsd:string .
+kgs:hGamma a owl:DatatypeProperty ; rdfs:domain kgs:Receipt ; rdfs:range xsd:string .
+kgs:hQ    a owl:DatatypeProperty ; rdfs:domain kgs:Receipt ; rdfs:range xsd:string .
+kgs:hA    a owl:DatatypeProperty ; rdfs:domain kgs:Receipt ; rdfs:range xsd:string .
+kgs:hM    a owl:DatatypeProperty ; rdfs:domain kgs:Receipt ; rdfs:range xsd:string .
+kgs:prev  a owl:DatatypeProperty ; rdfs:domain kgs:Receipt ; rdfs:range xsd:string .
 
-kgs:source a rdf:Property ;
-  rdfs:label "source node" ;
-  rdfs:domain kgs:Edge ;
-  rdfs:range kgs:Node ;
-  rdfs:comment "The source node of an edge" .
+# Budgets / rate limits / chronology
+kgs:maxBudget         a owl:DatatypeProperty ; rdfs:domain kgs:Budget ; rdfs:range xsd:decimal .
+kgs:rateLimit         a owl:DatatypeProperty ; rdfs:domain kgs:VariableDelta ; rdfs:range xsd:decimal .
+kgs:prevValue         a owl:DatatypeProperty ; rdfs:domain kgs:VariableDelta ; rdfs:range xsd:decimal .
+kgs:newValue          a owl:DatatypeProperty ; rdfs:domain kgs:VariableDelta ; rdfs:range xsd:decimal .
+kgs:minDecisionLagSec a owl:DatatypeProperty ; rdfs:domain kgs:Guard ;   rdfs:range xsd:decimal .
 
-kgs:target a rdf:Property ;
-  rdfs:label "target node" ;
-  rdfs:domain kgs:Edge ;
-  rdfs:range kgs:Node ;
-  rdfs:comment "The target node of an edge" .
+########## SHACL Shapes (Guards Q) ##########
 
-kgs:fieldValue a rdf:Property ;
-  rdfs:label "field value" ;
-  rdfs:domain kgs:Node ;
-  rdfs:range xsd:decimal ;
-  rdfs:comment "The value of a field at a specific node" .
+# Action safety: passivity ≥0, ISS ≥0, causal tag present; placebo if observational
+kgs:ActionShape a sh:NodeShape ;
+  sh:targetClass kgs:Action ;
+  sh:property [ sh:path kgs:passivityMargin ; sh:datatype xsd:decimal ; sh:minInclusive 0.0 ; sh:message "passivityMargin must be ≥ 0." ] ;
+  sh:property [ sh:path kgs:issMargin       ; sh:datatype xsd:decimal ; sh:minInclusive 0.0 ; sh:message "issMargin must be ≥ 0." ] ;
+  sh:property [ sh:path kgs:hasCausalTag    ; sh:in ( kgs:RCT kgs:IV kgs:BackDoor kgs:FrontDoor kgs:ObsAssumpt ) ;
+                sh:message "Action must carry a valid CausalTag." ] ;
+  sh:property [ sh:path kgs:placeboCheckPassed ; sh:datatype xsd:boolean ;
+                sh:message "Action must have placeboCheckPassed boolean." ] ;
+  sh:sparql [
+    sh:message "Observational actions (ObsAssumpt) require placeboCheckPassed = true." ;
+    sh:select """
+      PREFIX kgs: <http://example.org/kgs#>
+      SELECT $this WHERE {
+        $this kgs:hasCausalTag kgs:ObsAssumpt .
+        FILTER NOT EXISTS { $this kgs:placeboCheckPassed true }
+      }""" ] .
 
-kgs:hash a rdf:Property ;
-  rdfs:label "receipt hash" ;
-  rdfs:domain kgs:Receipt ;
-  rdfs:range xsd:string ;
-  rdfs:comment "Cryptographic hash for provenance" .
+# Iteration convergence: ||Δ|| < ε and residual < τ
+kgs:IterationShape a sh:NodeShape ;
+  sh:targetClass kgs:Iteration ;
+  sh:property [ sh:path kgs:epsilon   ; sh:datatype xsd:decimal ] ;
+  sh:property [ sh:path kgs:tau       ; sh:datatype xsd:decimal ] ;
+  sh:property [ sh:path kgs:deltaNorm ; sh:datatype xsd:decimal ; sh:lessThan kgs:epsilon ; sh:message "deltaNorm must be < epsilon." ] ;
+  sh:property [ sh:path kgs:residual  ; sh:datatype xsd:decimal ; sh:lessThan kgs:tau     ; sh:message "residual must be < tau." ] .
 
-kgs:timestamp a rdf:Property ;
-  rdfs:label "timestamp" ;
-  rdfs:domain kgs:Receipt ;
-  rdfs:range xsd:dateTime ;
-  rdfs:comment "When the receipt was generated" .
-
-kgs:describes a rdf:Property ;
-  rdfs:label "describes" ;
-  rdfs:domain kgs:Receipt ;
-  rdfs:range rdfs:Resource ;
-  rdfs:comment "The resource this receipt provides provenance for" .
-
-# ============================================
-# Ontology Metadata Properties
-# ============================================
-
-kgs:version a rdf:Property ;
-  rdfs:label "ontology version" ;
-  rdfs:range xsd:string ;
-  rdfs:comment "Semantic version of the ontology" .
-
-kgs:author a rdf:Property ;
-  rdfs:label "ontology author" ;
-  rdfs:range xsd:string ;
-  rdfs:comment "Creator of the ontology" .
-
-kgs:license a rdf:Property ;
-  rdfs:label "license" ;
-  rdfs:range xsd:string ;
-  rdfs:comment "License under which the ontology is published" .
-
-kgs:baseURI a rdf:Property ;
-  rdfs:label "base URI" ;
-  rdfs:range xsd:anyURI ;
-  rdfs:comment "Base URI for the ontology namespace" .
-
-# ============================================
-# SHACL Shapes for KGS Validation
-# ============================================
-
-kgs:NodeShape a sh:NodeShape ;
-  sh:targetClass kgs:Node ;
-  sh:property [
-    sh:path kgs:fieldValue ;
-    sh:datatype xsd:decimal ;
-    sh:message "Field value must be a decimal if present"
-  ] .
-
-kgs:EdgeShape a sh:NodeShape ;
-  sh:targetClass kgs:Edge ;
-  sh:property [
-    sh:path kgs:source ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:class kgs:Node ;
-    sh:message "Edge must have exactly one source node"
-  ] ;
-  sh:property [
-    sh:path kgs:target ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:class kgs:Node ;
-    sh:message "Edge must have exactly one target node"
-  ] .
-
-kgs:SectionShape a sh:NodeShape ;
-  sh:targetClass kgs:Section ;
-  sh:property [
-    sh:path kgs:hasNode ;
-    sh:class kgs:Node ;
-    sh:message "Section nodes must be of type kgs:Node"
-  ] ;
-  sh:property [
-    sh:path kgs:hasEdge ;
-    sh:class kgs:Edge ;
-    sh:message "Section edges must be of type kgs:Edge"
-  ] .
-
+# Receipts: basic hex patterns + prev must match an existing hM
 kgs:ReceiptShape a sh:NodeShape ;
   sh:targetClass kgs:Receipt ;
-  sh:property [
-    sh:path kgs:hash ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:datatype xsd:string ;
-    sh:pattern "^[0-9a-f]{8}$" ;
-    sh:message "Receipt hash must be exactly 8 hexadecimal characters"
-  ] ;
-  sh:property [
-    sh:path kgs:timestamp ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:datatype xsd:dateTime ;
-    sh:message "Receipt must have exactly one timestamp"
-  ] ;
-  sh:property [
-    sh:path kgs:describes ;
-    sh:minCount 1 ;
-    sh:message "Receipt must describe at least one resource"
-  ] .
+  sh:property [ sh:path kgs:hO ;     sh:pattern "^[0-9a-f]{8,}$" ; sh:flags "i" ; sh:message "hO must be hex-like." ] ;
+  sh:property [ sh:path kgs:hGamma ; sh:pattern "^[0-9a-f]{8,}$" ; sh:flags "i" ; sh:message "hGamma must be hex-like." ] ;
+  sh:property [ sh:path kgs:hQ ;     sh:pattern "^[0-9a-f]{8,}$" ; sh:flags "i" ; sh:message "hQ must be hex-like." ] ;
+  sh:property [ sh:path kgs:hA ;     sh:pattern "^[0-9a-f]{8,}$" ; sh:flags "i" ; sh:message "hA must be hex-like." ] ;
+  sh:property [ sh:path kgs:hM ;     sh:pattern "^[0-9a-f]{8,}$" ; sh:flags "i" ; sh:message "hM must be hex-like." ] ;
+  sh:sparql [
+    sh:message "Receipt.prev must equal some prior Receipt's hM." ;
+    sh:select """
+      PREFIX kgs: <http://example.org/kgs#>
+      SELECT $this WHERE {
+        $this kgs:prev ?prev .
+        FILTER NOT EXISTS { ?r a kgs:Receipt ; kgs:hM ?prev . }
+      }""" ] .
 
-# ============================================
-# Example Usage (for reference)
-# ============================================
+# Scope bounds: Observations must use declared Σ keys
+kgs:ObservationShape a sh:NodeShape ;
+  sh:targetClass kgs:Observation ;
+  sh:property [ sh:path kgs:variable ; sh:in ( kgs:key_tsmc_wspm kgs:key_asml_euv_shipments_ytd kgs:key_node_mix_3nm
+                                               kgs:key_h100_supply_index kgs:key_inference_cost_per_1k
+                                               kgs:key_gpu_spot_price_index kgs:key_queue_delay_minutes
+                                               kgs:key_packaging_capacity kgs:key_adoption_index
+                                               kgs:key_churn_rate kgs:key_price_index kgs:key_quality_index ) ;
+                sh:message "Observation variable must be declared in Σ." ] ;
+  sh:property [ sh:path kgs:value ; sh:datatype xsd:decimal ] .
 
-# Example: A simple knowledge graph section
-# kgs:ExampleSection a kgs:Section ;
-#   kgs:hasNode kgs:Node1, kgs:Node2 ;
-#   kgs:hasEdge kgs:Edge1 .
-#
-# kgs:Node1 a kgs:Node ;
-#   rdfs:label "Concept A" ;
-#   kgs:fieldValue 1.0 .
-#
-# kgs:Node2 a kgs:Node ;
-#   rdfs:label "Concept B" ;
-#   kgs:fieldValue 2.0 .
-#
-# kgs:Edge1 a kgs:Edge ;
-#   kgs:source kgs:Node1 ;
-#   kgs:target kgs:Node2 ;
-#   rdfs:label "relates to" .
-#
-# kgs:ExampleReceipt a kgs:Receipt ;
-#   kgs:hash "3f8e9a2c" ;
-#   kgs:timestamp "2025-11-08T23:00:00Z"^^xsd:dateTime ;
-#   kgs:describes kgs:ExampleSection .
+# Budget guard: sum of USD increase_capex magnitudes per sector ≤ cap
+kgs:BudgetShape a sh:NodeShape ;
+  sh:targetClass kgs:Budget ;
+  sh:property [ sh:path kgs:maxBudget ; sh:datatype xsd:decimal ] ;
+  sh:sparql [
+    sh:message "Total increase_capex (USD) for sector exceeds budget cap." ;
+    sh:select """
+      PREFIX kgs: <http://example.org/kgs#>
+      SELECT ?this WHERE {
+        ?this a kgs:Budget ; kgs:maxBudget ?cap ; kgs:sector ?s .
+        { SELECT ?s (SUM(?m) AS ?total) WHERE {
+            ?a a kgs:Action ; kgs:sector ?s ;
+               kgs:command "increase_capex" ; kgs:currency "USD" ;
+               kgs:magnitude ?m .
+          } GROUP BY ?s }
+        FILTER (?total > ?cap)
+      }""" ] .
 
-# Receipt: hash(kgs_ontology_v1) = 7e3f9a2c
+# Rate limit guard: |new - prev| ≤ rateLimit * max(prev, 1e-9)
+kgs:RateLimitShape a sh:NodeShape ;
+  sh:targetClass kgs:VariableDelta ;
+  sh:property [ sh:path kgs:rateLimit ; sh:datatype xsd:decimal ; sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ] ;
+  sh:property [ sh:path kgs:prevValue ; sh:datatype xsd:decimal ] ;
+  sh:property [ sh:path kgs:newValue  ; sh:datatype xsd:decimal ] ;
+  sh:sparql [
+    sh:message "Rate limit violated for variable delta." ;
+    sh:select """
+      PREFIX kgs: <http://example.org/kgs#>
+      SELECT $this WHERE {
+        $this kgs:rateLimit ?r ; kgs:prevValue ?p ; kgs:newValue ?n .
+        BIND (ABS(?n - ?p) AS ?diff)
+        BIND ((IF(?p > 1e-9, ?p, 1e-9) * ?r) AS ?bound)
+        FILTER (?diff > ?bound)
+      }""" ] .
+
+# Chronology: action time ≥ observation time + minDecisionLagSec (if a lag guard exists)
+kgs:ChronologyShape a sh:NodeShape ;
+  sh:targetClass kgs:Action ;
+  sh:property [ sh:path kgs:epochSeconds ; sh:datatype xsd:decimal ] ;
+  sh:sparql [
+    sh:message "Action executed before allowed decision lag." ;
+    sh:select """
+      PREFIX kgs: <http://example.org/kgs#>
+      SELECT $this WHERE {
+        $this kgs:epochSeconds ?ta ; kgs:basedOn ?o .
+        ?o    kgs:epochSeconds ?to .
+        ?g a kgs:Guard ; kgs:minDecisionLagSec ?lag .
+        FILTER (?ta < (?to + ?lag))
+      }""" ] .
+
+# Calibration thresholds (ECE, cross, decision-ECE); simple example slot
+kgs:CalibrationShape a sh:NodeShape ;
+  sh:targetClass kgs:Calibration ;
+  sh:property [ sh:path kgs:value ; sh:datatype xsd:decimal ] .
+
+# μ∞ meta-layer must end in metaStable = true (boolean)
+kgs:metaStable a owl:DatatypeProperty ; rdfs:domain kgs:MetaRegeneration ; rdfs:range xsd:boolean .
+kgs:MetaRegenerationShape a sh:NodeShape ;
+  sh:targetClass kgs:MetaRegeneration ;
+  sh:property [ sh:path kgs:metaStable ; sh:hasValue true ;
+                sh:message "μ∞ regeneration must reach a stable constructive closure." ] .

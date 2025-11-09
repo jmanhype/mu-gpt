@@ -1,0 +1,54 @@
+# examples/semis.ttl
+# Purpose: Example data for the Semiconductors sector using KGS Σ and guards.
+
+@prefix kgs:  <http://example.org/kgs#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+kgs:Semiconductors a kgs:Sector ; rdfs:label "Semiconductors" .
+
+kgs:Budget_2025_11 a kgs:Budget ;
+  kgs:sector    kgs:Semiconductors ;
+  kgs:maxBudget "2000000000"^^xsd:decimal .
+
+kgs:Obs_TSMC_WSPM a kgs:Observation ;
+  kgs:variable     kgs:key_tsmc_wspm ;
+  kgs:value        "27000"^^xsd:decimal ;
+  kgs:unit         "wspm" ;
+  kgs:epochSeconds "1761950400"^^xsd:decimal .
+
+kgs:Obs_ASML_EUV_YTD a kgs:Observation ;
+  kgs:variable     kgs:key_asml_euv_shipments_ytd ;
+  kgs:value        "350"^^xsd:decimal ;
+  kgs:unit         "systems" ;
+  kgs:epochSeconds "1761950400"^^xsd:decimal .
+
+kgs:Obs_3nm_Mix a kgs:Observation ;
+  kgs:variable     kgs:key_node_mix_3nm ;
+  kgs:value        "0.28"^^xsd:decimal ;
+  kgs:unit         "fraction" ;
+  kgs:epochSeconds "1761950400"^^xsd:decimal .
+
+kgs:Proposal_CapexIncrease a kgs:Proposal ;
+  kgs:sector    kgs:Semiconductors ;
+  kgs:appliesTo kgs:Obs_TSMC_WSPM, kgs:Obs_ASML_EUV_YTD .
+
+kgs:Action_IncreaseCapex a kgs:Action ;
+  kgs:sector             kgs:Semiconductors ;
+  kgs:command            "increase_capex" ;
+  kgs:magnitude          "500000000"^^xsd:decimal ;
+  kgs:currency           "USD" ;
+  kgs:passivityMargin    "0.12"^^xsd:decimal ;
+  kgs:issMargin          "0.08"^^xsd:decimal ;
+  kgs:hasCausalTag       kgs:IV ;
+  kgs:placeboCheckPassed true ;
+  kgs:basedOn            kgs:Obs_TSMC_WSPM ;
+  kgs:epochSeconds       "1761952000"^^xsd:decimal .
+
+kgs:Receipt_Semis_2025_11 a kgs:Receipt ;
+  kgs:hO     "a1b2c3d4e5f60718" ;
+  kgs:hGamma "1a2b3c4d5e6f7081" ;
+  kgs:hQ     "f1e2d3c4b5a69870" ;
+  kgs:hA     "9f8e7d6c5b4a3210" ;
+  kgs:hM     "0011223344556677" ;
+  kgs:prev   "ffeeddccbbaa9988" .

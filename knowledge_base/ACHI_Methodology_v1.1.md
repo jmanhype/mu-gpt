@@ -1,479 +1,186 @@
-# ACHI Methodology v1.1
+# 🧠 ACHI Methodology — From Ontology to Hardware
 
-**Autonomous Code Healing & Intelligence**
-
-The ACHI methodology is a deterministic framework for building software systems where **ontology precedes code**, and all artifacts are derived from a single source of truth.
-
----
-
-## Core Principle: μ-Thinking
-
-> **Ontology is the universe; code is its temporal shadow.**
-
-### The μ Function
-
-```
-A = μ(O)
-```
-
-Where:
-- **O** = Ontology (the source of truth)
-- **A** = Artifact (code, API, UI, contracts)
-- **μ** = The transformation function (deterministic)
-
-**Laws:**
-- `O ⊨ Σ` — Only well-typed RDF enters μ
-- `μ∘μ = μ` — Idempotent (seek ε-fixed points)
-- `Λ total` — Same O → same A (deterministic)
-- `hash(A) = hash(μ(O))` — Provenance receipts
+**Law:** `A = μ(O)` · **Typing:** `O ⊨ Σ` · **Invariants:** `preserve(Q)` · **Determinism:** `Λ total`
+**Provenance:** `hash(A) = hash(μ(O))` · **Idempotence:** `μ∘μ = μ` · **Closed world** · **80/20 discipline**
 
 ---
 
-## The ACHI Pipeline
+## 0️⃣ Framing — ACHI Law
 
-```
-unrdf → ggen → clnrm → Gitvan → KNHK
-```
+| Principle                              | Meaning                                                  |
+| -------------------------------------- | -------------------------------------------------------- |
+| **Law:** `A = μ(O)`                    | Actions are computed deterministically from observations |
+| **Typing:** `O ⊨ Σ`                    | Only well-typed RDF facts enter μ                        |
+| **Invariants:** `preserve(Q)`          | SHACL + reflex hooks enforce constraints                 |
+| **Determinism:** `Λ total`             | Same O → same A, zero drift                              |
+| **Provenance:** `hash(A) = hash(μ(O))` | Every change emits a receipt                             |
+| **Idempotence:** `μ∘μ = μ`             | Reapplying μ doesn't change A                            |
+| **Closed world:**                      | No hidden state; μ only sees O                           |
+| **80/20 discipline:**                  | Optimize critical 20% (branchless C + core invariants)   |
 
-### 1. unrdf — Unified RDF Ontology (Σ)
+---
 
-**Purpose**: Define the domain model as Turtle/RDF
+## 1️⃣ PRD → Ontology (Σ)
 
-**Inputs**: Domain requirements, business logic
+**Goal:** turn a product spec or PRD into a formal, queryable graph.
 
-**Outputs**:
-- `.ttl` files (Turtle ontology)
-- Classes, properties, relations
-- Units and measurements
+**Steps**
+1. Extract **nouns** (entities), **verbs** (relations), **invariants** (rules), and **events** (ΔO).
+2. Namespace modules: `ex:compliance/`, `ex:trading/`, etc.
+3. Define RDFS/OWL classes + SHACL shapes for invariants.
 
-**Key Concepts**:
-- **Σ (Sigma)**: The ontology schema
-- Entities: `rdfs:Class`
-- Relations: `rdf:Property`
-- Constraints defined separately in Q layer
-
-**Example**:
+**Minimal example**
 ```turtle
-@prefix ex: <http://example.org/domain#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-
-ex:Entity a rdfs:Class .
-ex:hasProperty a rdf:Property ;
-  rdfs:domain ex:Entity ;
-  rdfs:range xsd:string .
-```
-
-**Receipt**: `hash(Σ) = <ontology_hash>`
-
----
-
-### 2. ggen — Graph Generation (Π)
-
-**Purpose**: Generate artifacts from ontology
-
-**Inputs**: Σ (ontology) + templates
-
-**Outputs**:
-- Backend code (Rust, Python, TypeScript)
-- Frontend scaffolding (React, Vue)
-- API schemas (GraphQL, REST)
-- Database migrations
-- Documentation
-
-**Key Concepts**:
-- **Π (Pi)**: Derived artifacts
-- Templates: backend, frontend, contracts
-- Code = projection of ontology
-- One ontology → many projections
-
-**Example Command**:
-```bash
-ggen template generate-rdf \
-  --ontology domain.ttl \
-  --template rust-graphql-api
-```
-
-**Receipt**: `hash(Π) = hash(μ(Σ))`
-
----
-
-### 3. clnrm — Cleanup & Normalization (Q)
-
-**Purpose**: Enforce invariants and constraints
-
-**Inputs**: Σ + business rules
-
-**Outputs**:
-- SHACL shapes (`.shacl.ttl`)
-- Validation rules
-- Guard conditions
-- Rate limits, budgets, chronology checks
-
-**Key Concepts**:
-- **Q**: Invariants that must be preserved
-- SHACL: Shapes Constraint Language
-- `preserve(Q)`: System maintains Q across all transformations
-- Guards added AFTER Σ stabilizes
-
-**Example**:
-```turtle
+@prefix ex: <http://example.org/compliance#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix ex: <http://example.org/domain#> .
 
-ex:EntityShape a sh:NodeShape ;
-  sh:targetClass ex:Entity ;
-  sh:property [
-    sh:path ex:hasProperty ;
-    sh:minCount 1 ;
-    sh:datatype xsd:string ;
-    sh:message "Entity must have at least one property"
-  ] .
+ex:RegulatoryRule a rdfs:Class .
+ex:SOPProcedure   a rdfs:Class .
+ex:governedBy a rdf:Property ; rdfs:domain ex:SOPProcedure ; rdfs:range ex:RegulatoryRule .
+
+ex:SOPMustCiteRuleShape a sh:NodeShape ;
+  sh:targetClass ex:SOPProcedure ;
+  sh:property [ sh:path ex:governedBy ; sh:minCount 1 ] .
 ```
-
-**Receipt**: `hash(Q) = <constraints_hash>`
 
 ---
 
-### 4. Gitvan — Git-based Vantage & Versioning
+## 2️⃣ Activate μ — **unrdf hooks** (example)
 
-**Purpose**: Track ontology evolution with provenance
+```ts
+import { defineHook, registerHook } from "unrdf"
 
-**Inputs**: Σ, Q, Π + git operations
+const mustCiteRule = defineHook({
+  meta: { name: "must-cite-rule" },
+  when: { kind: "shacl", shape: "ex:SOPMustCiteRuleShape" },
+  run: async evt => {
+    if (evt.violations.length) throw new Error("SOP missing governedBy")
+  }
+})
 
-**Outputs**:
-- Versioned ontologies
-- Deterministic snapshots
-- Audit trail
-- Rollback points
+const issueReceipt = defineHook({
+  meta: { name: "provenance-receipt" },
+  when: { kind: "delta" },
+  run: async (evt, ctx) => {
+    const h = await ctx.crypto.sha256(JSON.stringify(evt.additions))
+    await ctx.tx.add({ subject: `urn:receipt:${h}`, predicate: "ex:hasHash", object: h })
+  }
+})
 
-**Key Concepts**:
-- Every ontology change is a commit
-- `hash(commit) = hash(Σ + Q)`
-- Branches = different ontology perspectives
-- Tags = stable ontology versions
-
-**Example**:
-```bash
-git add domain.ttl
-git commit -m "feat(ontology): Add Entity.hasProperty relation
-
-Receipt: hash(Σ_v2)=3f8e9a2c"
+await registerHook(mustCiteRule)
+await registerHook(issueReceipt)
 ```
 
-**Receipt**: `hash(Gitvan) = <git_commit_hash>`
+*Optional Governance Hamiltonian:* `H(G) = Σ wᵢ·1[violationᵢ]`; block merges when `H(G) > 0`.
 
 ---
 
-### 5. KNHK — Knowledge Hooks & Context
+## 3️⃣ Σ → Π — **ggen projection**
 
-**Purpose**: Semantic search and runtime context
-
-**Inputs**: Σ + queries + embeddings
-
-**Outputs**:
-- SPARQL query results
-- Vector similarity search
-- Contextual knowledge retrieval
-- Runtime ontology traversal
-
-**Key Concepts**:
-- SPARQL: Query language for RDF
-- Embeddings: Vector representations of ontology nodes
-- Hooks: Runtime integration points
-- Context: Retrieved knowledge for AI/LLM consumption
-
-**Example**:
-```sparql
-PREFIX ex: <http://example.org/domain#>
-
-SELECT ?entity ?property
-WHERE {
-  ?entity a ex:Entity ;
-          ex:hasProperty ?property .
-}
+```yaml
+# ggen.frontmatter.yml
+module: compliance
+inputs: [ ontologies/compliance.ttl ]
+emit:
+  rust: { types_out: gen/rust/types.rs, openapi_out: gen/rust/openapi.yaml }
+  ts:   { types_out: gen/ts/types.ts }
+  sql:  { schema_out: gen/sql/schema.sql }
+  cli:  { spec_out: gen/rust/cli.rs }
+contracts:
+  invariants: [ ex:SOPMustCiteRuleShape ]
+receipts: true
 ```
 
-**Receipt**: `hash(KNHK) = <context_hash>`
+Run: `ggen project --cfg ggen.frontmatter.yml`
 
 ---
 
-## Σ, Q, Π: The Three Layers
+## 4️⃣ Verify Q — **Cleanroom (clnrm)**
 
-### Σ (Sigma) — Ontology Schema
-
-**What it is**: The domain model (entities, relations, units)
-
-**When to use**: Always start here. Define WHAT exists before HOW it behaves.
-
-**Format**: Turtle (`.ttl`)
-
-**Example entities**:
-- Classes: `ex:Fund`, `ex:Startup`, `ex:Deal`
-- Properties: `ex:hasPartner`, `ex:valuation`
-- Datatypes: `xsd:decimal`, `xsd:dateTime`
+* Hermetic runs; fail if SHACL violations, missing OTEL trace chains, or forbidden egress.
+* Success = OTEL + invariants validated.
 
 ---
 
-### Q — Invariants & Guards
+## 5️⃣ Orchestrate — **Gitvan**
 
-**What it is**: Constraints that must always hold
-
-**When to use**: After Σ stabilizes. Define WHAT must remain true.
-
-**Format**: SHACL (`.shacl.ttl`)
-
-**Example constraints**:
-- `minCount`, `maxCount` — Cardinality
-- `minInclusive`, `maxInclusive` — Ranges
-- `datatype`, `class` — Type checks
-- Custom SPARQL validators
+PR automation with the same Cleanroom gates: Schema, Invariant, OTEL, Receipt.
 
 ---
 
-### Π (Pi) — Derived Artifacts
+## 6️⃣ Execution Lanes
 
-**What it is**: Code, APIs, UIs generated from Σ
+### ⚙️ POC lane
 
-**When to use**: After Σ and Q exist. Generate HOW the system executes.
+Python/DSPy/FastAPI + unrdf + ggen + Cleanroom; iterate Σ→μ→Π.
 
-**Format**: Any (Rust, TypeScript, Python, LaTeX)
+### ⚙️ Production μ lane (KNHK)
 
-**Example projections**:
-- GraphQL API from Σ
-- React components from Σ
-- Database schema from Σ
-- Legal contracts from Σ
+| Layer      | Role                                  | Tech           |
+| ---------- | ------------------------------------- | -------------- |
+| Hot path   | Branchless, SIMD μ kernel ≤ 2 ns      | C              |
+| Warm path  | ETL, receipts, timing                 | Rust           |
+| Cold path  | Validation, SHACL, SPARQL             | Erlang         |
+| Provenance | Merkle receipts (URDNA2015 + SHA-256) | Rust Lockchain |
+
+FFI:
+
+```c
+size_t mu_decide(const float *vol,const float *thr,uint8_t *mask,size_t n);
+```
 
 ---
 
-## Receipts & Provenance
+## 7️⃣ Definition of Done
 
-Every step in ACHI must produce a **receipt**: a cryptographic-like hash that ensures determinism and auditability.
-
-### Receipt Format
-
-```
-hash(<essence>) = <8-char-hex>
-```
-
-### Examples
-
-```
-hash(ontology_v1) = 3f8e9a2c
-hash(guards_budget) = 7a2f9e3d
-hash(api_generation) = 9e3c8f2a
-```
-
-### Purpose
-
-1. **Determinism**: Same input → same output → same hash
-2. **Auditability**: Trace any artifact back to its ontology source
-3. **Versioning**: Know exactly which ontology version produced which code
-4. **Compliance**: LP reporting, legal discovery, regulatory requirements
+Σ versioned · μ hooks registered (H(G)=0) · Π emitted · Q verified · Receipts present
+Gates green in Gitvan · Docs + receipts published
 
 ---
 
-## Workflow Example: VC Platform
+## 8️⃣ Canonical Layout
 
-### Step 1: Define Σ (unrdf)
+```
+repo/
+  ontologies/
+  hooks/
+  ggen.frontmatter.yml
+  gen/
+  services/{api,worker,kernel}/
+  cleanroom/
+  gitvan/
+  receipts/
+  Makefile
+```
+
+---
+
+## 9️⃣ Order of Operations
+
+PRD→Σ → Activate μ → Σ→Π → Integrate → Prove Q → Gate+Merge → Deploy (KNHK) → Evolve (μ∘μ=μ)
+
+---
+
+## 🔟 Micro-example
 
 ```turtle
-@prefix vc: <http://example.org/vc#> .
-
-vc:Fund a rdfs:Class .
-vc:Startup a rdfs:Class .
-vc:Deal a rdfs:Class .
-
-vc:hasDeal a rdf:Property ;
-  rdfs:domain vc:Startup ;
-  rdfs:range vc:Deal .
+ex:SOP-123 a ex:SOPProcedure ; ex:title "KYC Verification" ; ex:governedBy ex:Rule-AML-KYC .
 ```
-
-Receipt: `hash(vc_ontology_v1) = 4e9a3f2c`
-
-### Step 2: Generate Backend (ggen)
 
 ```bash
-ggen template generate-rdf \
-  --ontology vc.ttl \
-  --template rust-graphql-api
-```
-
-Receipt: `hash(vc_api_v1) = hash(μ(vc_ontology_v1))`
-
-### Step 3: Add Guards (clnrm)
-
-```turtle
-vc:DealShape a sh:NodeShape ;
-  sh:targetClass vc:Deal ;
-  sh:property [
-    sh:path vc:valuation ;
-    sh:minInclusive 0.0 ;
-    sh:message "Valuation must be non-negative"
-  ] .
-```
-
-Receipt: `hash(vc_guards_v1) = 2f8c9e3a`
-
-### Step 4: Version (Gitvan)
-
-```bash
-git commit -m "feat: Add Deal.valuation guard
-
-Receipt: hash(vc_guards_v1)=2f8c9e3a"
-```
-
-### Step 5: Query (KNHK)
-
-```sparql
-PREFIX vc: <http://example.org/vc#>
-
-SELECT ?startup ?valuation
-WHERE {
-  ?startup vc:hasDeal ?deal .
-  ?deal vc:valuation ?valuation .
-  FILTER (?valuation > 1000000)
-}
+unrdf tx apply ontologies/compliance.ttl
+ggen project --cfg ggen.frontmatter.yml
+make cleanroom-test
+gitvan pr open --workspace gitvan/workspace.yaml
 ```
 
 ---
 
-## Key Principles
+## 1️⃣1️⃣ KNHK v0.4.0 Mapping
 
-### 1. Ontology Precedes Code
-
-Never write implementation before clarifying the ontology. Code is derivative.
-
-### 2. Idempotence
-
-Running μ multiple times on the same ontology produces the same artifact.
-
-### 3. Closed World
-
-No external state beyond O and Σ. Everything is derivable from the ontology.
-
-### 4. Determinism
-
-Same ontology + same template = same output, always.
-
-### 5. Provenance
-
-Every artifact has a receipt tracing back to its ontology source.
+μ(O): C hot path ≤2ns · Π: Rust ETL/CLI/Lockchain · Q: Erlang SHACL · Provenance: Merkle receipts
+Guards: `max_run_len ≤ 8`, `τ ≤ 2 ns` · Determinism: branchless SoA
 
 ---
 
-## Metaphors → Formal Constructs
-
-ACHI uses metaphors that map to formal concepts:
-
-| Metaphor | Formal Construct |
-|----------|------------------|
-| Akash | Γ/sections (category theory) |
-| μ∞ | Constructive closure (fixed-point) |
-| Chatman Constant | Tick budget (resource limit) |
-| KGS | Knowledge Geometry System (RDF + SHACL) |
-| Receipts | Cryptographic hashes (SHA-256) |
-
-**No mysticism**: All metaphors ground in formal reasoning.
-
----
-
-## Benefits of ACHI
-
-1. **Speed**: Generate entire platforms from ontology in hours
-2. **Consistency**: One source of truth → no drift between systems
-3. **Auditability**: Receipts trace every artifact to its source
-4. **Flexibility**: Change ontology → regenerate everything
-5. **Composability**: Merge ontologies → instant feature expansion
-6. **AI-Ready**: LLMs can refine ontologies from user data
-
----
-
-## Anti-Patterns
-
-### ❌ Writing Code First
-
-```python
-# WRONG: Starting with implementation
-class Deal:
-    def __init__(self, valuation):
-        self.valuation = valuation
-```
-
-### ✅ Ontology First
-
-```turtle
-# RIGHT: Define ontology, then generate code
-vc:Deal a rdfs:Class .
-vc:valuation a rdf:Property ;
-  rdfs:domain vc:Deal ;
-  rdfs:range xsd:decimal .
-```
-
-Then: `ggen template generate-rdf --ontology vc.ttl --template python-classes`
-
----
-
-### ❌ Adding Guards Before Σ Stabilizes
-
-```turtle
-# WRONG: Defining constraints when ontology is still changing
-vc:DealShape a sh:NodeShape ; ...
-```
-
-### ✅ Stabilize Σ, Then Add Q
-
-1. Iterate on Σ until domain model is clear
-2. Only then add SHACL shapes
-3. Regenerate artifacts with guards in place
-
----
-
-### ❌ Manual Code Maintenance
-
-```bash
-# WRONG: Editing generated code by hand
-vim src/generated/deal.rs
-```
-
-### ✅ Change Ontology, Regenerate
-
-```bash
-# RIGHT: Update source, regenerate projection
-vim vc.ttl
-ggen template generate-rdf --ontology vc.ttl --template rust-graphql-api
-```
-
----
-
-## Integration with ggen
-
-ACHI is implemented via the `ggen` CLI tool:
-
-```bash
-# Generate ontology from natural language
-ggen ai generate-ontology --prompt "VC platform..." --output vc.ttl
-
-# Merge ontologies
-ggen graph merge vc.ttl interview.ttl --output vc_full.ttl
-
-# Generate backend
-ggen template generate-rdf --ontology vc_full.ttl --template rust-graphql-api
-
-# Generate frontend
-ggen template generate-rdf --ontology vc_full.ttl --template react-typescript
-
-# Create hooks
-ggen hook create post-submit-answer --name score-answer
-```
-
----
-
-## Version History
-
-- **v1.1** (2025-11): Added formal Laws section, expanded examples
-- **v1.0** (2025-10): Initial ACHI framework
-
----
-
-**Receipt**: `hash(ACHI_v1.1) = 8e4f9c3a`
+**Receipt** `hash(ACHI_Methodology_v1.1)=f9a2e3cd67b0b4dc`

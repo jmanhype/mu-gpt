@@ -1,0 +1,51 @@
+# examples/compute_ai.ttl
+# Purpose: Example data for the Compute/AI sector using KGS Σ.
+
+@prefix kgs:  <http://example.org/kgs#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+kgs:ComputeAI a kgs:Sector ; rdfs:label "Compute/AI" .
+
+kgs:Obs_H100_Supply a kgs:Observation ;
+  kgs:variable     kgs:key_h100_supply_index ;
+  kgs:value        "1.15"^^xsd:decimal ;
+  kgs:unit         "index" ;
+  kgs:epochSeconds "1762300000"^^xsd:decimal .
+
+kgs:Obs_InferenceCost a kgs:Observation ;
+  kgs:variable     kgs:key_inference_cost_per_1k ;
+  kgs:value        "0.0042"^^xsd:decimal ;
+  kgs:unit         "USD_per_1k_tokens" ;
+  kgs:epochSeconds "1762300000"^^xsd:decimal .
+
+kgs:Obs_GPUSpot a kgs:Observation ;
+  kgs:variable     kgs:key_gpu_spot_price_index ;
+  kgs:value        "2.8"^^xsd:decimal ;
+  kgs:unit         "USD_per_hour" ;
+  kgs:epochSeconds "1762300000"^^xsd:decimal .
+
+kgs:Obs_QueueDelay a kgs:Observation ;
+  kgs:variable     kgs:key_queue_delay_minutes ;
+  kgs:value        "45"^^xsd:decimal ;
+  kgs:unit         "minutes" ;
+  kgs:epochSeconds "1762300000"^^xsd:decimal .
+
+kgs:Action_ReserveGPUs a kgs:Action ;
+  kgs:sector             kgs:ComputeAI ;
+  kgs:command            "reserve_gpus" ;
+  kgs:magnitude          "1200"^^xsd:decimal ;
+  kgs:passivityMargin    "0.15"^^xsd:decimal ;
+  kgs:issMargin          "0.10"^^xsd:decimal ;
+  kgs:hasCausalTag       kgs:BackDoor ;
+  kgs:placeboCheckPassed true ;
+  kgs:basedOn            kgs:Obs_H100_Supply ;
+  kgs:epochSeconds       "1762301600"^^xsd:decimal .
+
+kgs:Receipt_ComputeAI_2025_11 a kgs:Receipt ;
+  kgs:hO     "b2c3d4e5f6071829" ;
+  kgs:hGamma "2b3c4d5e6f708192" ;
+  kgs:hQ     "e2d3c4b5a6987031" ;
+  kgs:hA     "8e7d6c5b4a321094" ;
+  kgs:hM     "1122334455667788" ;
+  kgs:prev   "0011223344556677" .
