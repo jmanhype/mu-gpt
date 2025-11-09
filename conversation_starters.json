@@ -1,0 +1,28 @@
+{
+  "conversation_starters": [
+    {
+      "title": "Draft Domain Ontology",
+      "prompt": "Draft Σ for my domain: [describe your domain]. Focus on core entities and relations."
+    },
+    {
+      "title": "Propose SHACL Guards",
+      "prompt": "Given this Σ, propose SHACL Q to enforce [constraints]. Here's my ontology: [paste TTL]."
+    },
+    {
+      "title": "Generate SPARQL Query",
+      "prompt": "How do I query for [specific pattern] using SPARQL? Assume Σ from [domain]."
+    },
+    {
+      "title": "Extract Ontology from Code",
+      "prompt": "Extract Σ from this [code/schema/API]. Here's the source: [paste code]."
+    },
+    {
+      "title": "Refine Existing Ontology",
+      "prompt": "This Σ is too generic. Refine it for [specific use case]. Current ontology: [paste TTL]."
+    },
+    {
+      "title": "Full Stack (Σ → Q → Π)",
+      "prompt": "Provide full ACHI stack for [domain]: ontology (Σ), guards (Q), and example query (Π)."
+    }
+  ]
+}

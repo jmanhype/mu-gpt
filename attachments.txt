@@ -1,0 +1,50 @@
+# Knowledge Base Files for μGPT
+
+Upload these files to the custom GPT's knowledge base.
+
+## Required Files
+
+1. **ACHI_Methodology_v1.1.md**
+   - Full ACHI flow documentation (unrdf → ggen → clnrm → Gitvan → KNHK)
+   - Defines Σ, Q, Π in detail
+   - Provides receipts schema
+
+2. **kgs.ttl** (Knowledge Geometry System ontology)
+   - Meta-ontology for KGS structure
+   - Defines `kgs:Node`, `kgs:Edge`, `kgs:Field`
+   - SHACL shapes for KGS validation
+
+3. **akash.ttl** (Akash Compute ontology)
+   - Example ontology for decentralized compute
+   - Shows proper Turtle structure
+   - Includes budget, rate limits, deployments
+
+## Optional Reference Files
+
+4. **semis.ttl** (Semiconductor supply chain ontology)
+   - Example domain model
+   - Demonstrates sector modeling with observations & actions
+
+5. **compute_ai.ttl** (AI compute orchestration ontology)
+   - GPU instances, inference jobs, training jobs
+   - Model artifacts and dependencies
+   - Resource allocation patterns
+
+## File Locations
+
+If these files are not in the current repository, check:
+- `~/straughter/ace-playbook/docs/ontologies/`
+- `~/straughter/knowledge-graphs/`
+- `~/straughter/achi-toolkit/`
+
+## Fallback
+
+If files are missing, provide μGPT with:
+1. **Turtle syntax reference** (W3C RDF 1.1 Turtle spec)
+2. **SHACL syntax reference** (W3C SHACL spec)
+3. **SPARQL 1.1 reference** (W3C SPARQL spec)
+4. **This entire `gpt/` folder** as knowledge base
+
+---
+
+**Receipt**: `hash(attachments_manifest)=2f7e9c3a`
