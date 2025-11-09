@@ -54,7 +54,9 @@ gpt/
 ├── conversation_starters.json   # Starter prompts for users
 ├── eval_prompts.md              # 8 tests to validate μGPT behavior
 ├── output_examples.md           # Reference examples of ideal responses
-└── attachments.txt              # Knowledge base files to upload
+├── attachments.txt              # Knowledge base files to upload
+└── use_cases/
+    └── vc_saas_platform.md      # Complete walkthrough: VC SaaS platform
 ```
 
 ---
@@ -162,6 +164,24 @@ Use the 8 tests in [`eval_prompts.md`](./eval_prompts.md):
 
 ### Too verbose
 **Fix**: Add constraint: "Keep responses under 200 words unless user requests detail."
+
+---
+
+## Use Cases
+
+### VC SaaS Platform (Complete Walkthrough)
+
+See [`use_cases/vc_saas_platform.md`](./use_cases/vc_saas_platform.md) for a complete guide to building a fundable venture capital SaaS platform using μ-thinking:
+
+- **Phase 1**: Core VC platform (Fund, Deal, Investment tracking)
+- **Phase 2**: Interview practice module (AI-powered founder training)
+- **Phase 3**: Contract generator (LaTeX term sheets from ontology)
+
+**Key insight**: Change ontology → regenerate entire platform automatically.
+
+**Business model**: Free tier → Paid features → Enterprise (e-sign, blockchain notarization)
+
+**Time to market**: Hours instead of months.
 
 ---
 
