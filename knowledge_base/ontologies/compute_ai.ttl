@@ -1,0 +1,462 @@
+# AI Compute Orchestration Ontology
+# Models GPU instances, inference/training jobs, and model artifacts
+
+@prefix cai:  <http://compute.ai/schema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix kgs:  <http://knowledgegeometry.org/schema#> .
+
+# ============================================
+# Core AI Compute Classes
+# ============================================
+
+cai:GPUInstance a rdfs:Class ;
+  rdfs:label "GPU Instance" ;
+  rdfs:comment "A GPU compute instance for AI workloads" .
+
+cai:InferenceJob a rdfs:Class ;
+  rdfs:label "Inference Job" ;
+  rdfs:comment "A job running model inference" .
+
+cai:TrainingJob a rdfs:Class ;
+  rdfs:label "Training Job" ;
+  rdfs:comment "A job training a machine learning model" .
+
+cai:Model a rdfs:Class ;
+  rdfs:label "Model" ;
+  rdfs:comment "A trained machine learning model artifact" .
+
+cai:Dataset a rdfs:Class ;
+  rdfs:label "Dataset" ;
+  rdfs:comment "Training or evaluation dataset" .
+
+cai:Checkpoint a rdfs:Class ;
+  rdfs:label "Checkpoint" ;
+  rdfs:comment "Model checkpoint during training" .
+
+cai:Endpoint a rdfs:Class ;
+  rdfs:label "Endpoint" ;
+  rdfs:comment "Deployed inference endpoint" .
+
+cai:Cluster a rdfs:Class ;
+  rdfs:label "Cluster" ;
+  rdfs:comment "Cluster of GPU instances for distributed training" .
+
+# ============================================
+# GPU Instance Types
+# ============================================
+
+cai:A100Instance a cai:GPUInstance ;
+  rdfs:label "NVIDIA A100" ;
+  rdfs:comment "NVIDIA A100 GPU instance" .
+
+cai:H100Instance a cai:GPUInstance ;
+  rdfs:label "NVIDIA H100" ;
+  rdfs:comment "NVIDIA H100 GPU instance" .
+
+cai:V100Instance a cai:GPUInstance ;
+  rdfs:label "NVIDIA V100" ;
+  rdfs:comment "NVIDIA V100 GPU instance" .
+
+cai:T4Instance a cai:GPUInstance ;
+  rdfs:label "NVIDIA T4" ;
+  rdfs:comment "NVIDIA T4 GPU instance" .
+
+# ============================================
+# AI Compute Properties
+# ============================================
+
+cai:runsOn a rdf:Property ;
+  rdfs:label "runs on" ;
+  rdfs:domain cai:InferenceJob, cai:TrainingJob ;
+  rdfs:range cai:GPUInstance ;
+  rdfs:comment "GPU instance(s) running this job" .
+
+cai:usesModel a rdf:Property ;
+  rdfs:label "uses model" ;
+  rdfs:domain cai:InferenceJob ;
+  rdfs:range cai:Model ;
+  rdfs:comment "Model used for inference" .
+
+cai:producesModel a rdf:Property ;
+  rdfs:label "produces model" ;
+  rdfs:domain cai:TrainingJob ;
+  rdfs:range cai:Model ;
+  rdfs:comment "Model produced by training" .
+
+cai:trainsOn a rdf:Property ;
+  rdfs:label "trains on" ;
+  rdfs:domain cai:TrainingJob ;
+  rdfs:range cai:Dataset ;
+  rdfs:comment "Dataset used for training" .
+
+cai:servesModel a rdf:Property ;
+  rdfs:label "serves model" ;
+  rdfs:domain cai:Endpoint ;
+  rdfs:range cai:Model ;
+  rdfs:comment "Model served by endpoint" .
+
+cai:hasCheckpoint a rdf:Property ;
+  rdfs:label "has checkpoint" ;
+  rdfs:domain cai:TrainingJob ;
+  rdfs:range cai:Checkpoint ;
+  rdfs:comment "Checkpoint saved during training" .
+
+cai:partOfCluster a rdf:Property ;
+  rdfs:label "part of cluster" ;
+  rdfs:domain cai:GPUInstance ;
+  rdfs:range cai:Cluster ;
+  rdfs:comment "Cluster this instance belongs to" .
+
+# GPU Instance Properties
+
+cai:gpuMemory a rdf:Property ;
+  rdfs:label "GPU memory" ;
+  rdfs:domain cai:GPUInstance ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "GPU memory in gigabytes" .
+
+cai:computeCapability a rdf:Property ;
+  rdfs:label "compute capability" ;
+  rdfs:domain cai:GPUInstance ;
+  rdfs:range xsd:string ;
+  rdfs:comment "CUDA compute capability version" .
+
+cai:instanceType a rdf:Property ;
+  rdfs:label "instance type" ;
+  rdfs:domain cai:GPUInstance ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Cloud instance type identifier" .
+
+cai:pricePerHour a rdf:Property ;
+  rdfs:label "price per hour" ;
+  rdfs:domain cai:GPUInstance ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Hourly cost in USD" .
+
+# Job Properties
+
+cai:jobStatus a rdf:Property ;
+  rdfs:label "job status" ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Current job status (pending, running, completed, failed)" .
+
+cai:startedAt a rdf:Property ;
+  rdfs:label "started at" ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "Job start timestamp" .
+
+cai:completedAt a rdf:Property ;
+  rdfs:label "completed at" ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "Job completion timestamp" .
+
+cai:gpuHours a rdf:Property ;
+  rdfs:label "GPU hours" ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Total GPU hours consumed" .
+
+# Training Job Properties
+
+cai:epochs a rdf:Property ;
+  rdfs:label "epochs" ;
+  rdfs:domain cai:TrainingJob ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Number of training epochs" .
+
+cai:batchSize a rdf:Property ;
+  rdfs:label "batch size" ;
+  rdfs:domain cai:TrainingJob ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Training batch size" .
+
+cai:learningRate a rdf:Property ;
+  rdfs:label "learning rate" ;
+  rdfs:domain cai:TrainingJob ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Learning rate for training" .
+
+cai:loss a rdf:Property ;
+  rdfs:label "loss" ;
+  rdfs:domain cai:TrainingJob, cai:Checkpoint ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Training loss value" .
+
+cai:accuracy a rdf:Property ;
+  rdfs:label "accuracy" ;
+  rdfs:domain cai:TrainingJob, cai:Checkpoint ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Model accuracy metric" .
+
+# Inference Job Properties
+
+cai:requestsPerSecond a rdf:Property ;
+  rdfs:label "requests per second" ;
+  rdfs:domain cai:InferenceJob, cai:Endpoint ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Throughput in requests per second" .
+
+cai:latencyMs a rdf:Property ;
+  rdfs:label "latency (ms)" ;
+  rdfs:domain cai:InferenceJob, cai:Endpoint ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Average latency in milliseconds" .
+
+cai:totalRequests a rdf:Property ;
+  rdfs:label "total requests" ;
+  rdfs:domain cai:InferenceJob ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Total number of inference requests" .
+
+# Model Properties
+
+cai:modelSize a rdf:Property ;
+  rdfs:label "model size" ;
+  rdfs:domain cai:Model ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Model size in gigabytes" .
+
+cai:parameterCount a rdf:Property ;
+  rdfs:label "parameter count" ;
+  rdfs:domain cai:Model ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Number of model parameters in millions" .
+
+cai:framework a rdf:Property ;
+  rdfs:label "framework" ;
+  rdfs:domain cai:Model ;
+  rdfs:range xsd:string ;
+  rdfs:comment "ML framework (PyTorch, TensorFlow, JAX)" .
+
+cai:version a rdf:Property ;
+  rdfs:label "version" ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Version identifier" .
+
+# Dataset Properties
+
+cai:datasetSize a rdf:Property ;
+  rdfs:label "dataset size" ;
+  rdfs:domain cai:Dataset ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Number of examples in dataset" .
+
+cai:storagePath a rdf:Property ;
+  rdfs:label "storage path" ;
+  rdfs:domain cai:Dataset, cai:Model, cai:Checkpoint ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Storage location (S3, GCS, etc.)" .
+
+# Cluster Properties
+
+cai:nodeCount a rdf:Property ;
+  rdfs:label "node count" ;
+  rdfs:domain cai:Cluster ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Number of nodes in cluster" .
+
+cai:topology a rdf:Property ;
+  rdfs:label "topology" ;
+  rdfs:domain cai:Cluster ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Cluster topology (ring, mesh, tree)" .
+
+# ============================================
+# SHACL Shapes for AI Compute Validation
+# ============================================
+
+cai:GPUInstanceShape a sh:NodeShape ;
+  sh:targetClass cai:GPUInstance ;
+  sh:property [
+    sh:path cai:gpuMemory ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 8 ;
+    sh:message "GPU memory must be at least 8GB"
+  ] ;
+  sh:property [
+    sh:path cai:pricePerHour ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.01 ;
+    sh:message "Price per hour must be positive"
+  ] ;
+  sh:property [
+    sh:path cai:instanceType ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:message "Instance type should be specified"
+  ] .
+
+cai:TrainingJobShape a sh:NodeShape ;
+  sh:targetClass cai:TrainingJob ;
+  sh:property [
+    sh:path cai:runsOn ;
+    sh:minCount 1 ;
+    sh:class cai:GPUInstance ;
+    sh:message "Training job must run on at least one GPU instance"
+  ] ;
+  sh:property [
+    sh:path cai:trainsOn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cai:Dataset ;
+    sh:message "Training job must use exactly one dataset"
+  ] ;
+  sh:property [
+    sh:path cai:epochs ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1 ;
+    sh:message "Epochs must be at least 1"
+  ] ;
+  sh:property [
+    sh:path cai:batchSize ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1 ;
+    sh:message "Batch size must be at least 1"
+  ] ;
+  sh:property [
+    sh:path cai:jobStatus ;
+    sh:maxCount 1 ;
+    sh:in ("pending" "running" "completed" "failed") ;
+    sh:message "Job status must be pending, running, completed, or failed"
+  ] .
+
+cai:InferenceJobShape a sh:NodeShape ;
+  sh:targetClass cai:InferenceJob ;
+  sh:property [
+    sh:path cai:usesModel ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cai:Model ;
+    sh:message "Inference job must use exactly one model"
+  ] ;
+  sh:property [
+    sh:path cai:runsOn ;
+    sh:minCount 1 ;
+    sh:class cai:GPUInstance ;
+    sh:message "Inference job must run on at least one GPU instance"
+  ] ;
+  sh:property [
+    sh:path cai:totalRequests ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 0 ;
+    sh:message "Total requests must be non-negative"
+  ] .
+
+cai:ModelShape a sh:NodeShape ;
+  sh:targetClass cai:Model ;
+  sh:property [
+    sh:path cai:framework ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:in ("PyTorch" "TensorFlow" "JAX" "ONNX") ;
+    sh:message "Framework must be PyTorch, TensorFlow, JAX, or ONNX"
+  ] ;
+  sh:property [
+    sh:path cai:modelSize ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.001 ;
+    sh:message "Model size must be positive"
+  ] ;
+  sh:property [
+    sh:path cai:parameterCount ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1 ;
+    sh:message "Parameter count must be at least 1M"
+  ] .
+
+cai:EndpointShape a sh:NodeShape ;
+  sh:targetClass cai:Endpoint ;
+  sh:property [
+    sh:path cai:servesModel ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cai:Model ;
+    sh:message "Endpoint must serve exactly one model"
+  ] ;
+  sh:property [
+    sh:path cai:requestsPerSecond ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:message "Requests per second must be non-negative"
+  ] .
+
+cai:ClusterShape a sh:NodeShape ;
+  sh:targetClass cai:Cluster ;
+  sh:property [
+    sh:path cai:nodeCount ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 2 ;
+    sh:message "Cluster must have at least 2 nodes"
+  ] ;
+  sh:property [
+    sh:path cai:topology ;
+    sh:maxCount 1 ;
+    sh:in ("ring" "mesh" "tree") ;
+    sh:message "Topology must be ring, mesh, or tree"
+  ] .
+
+# ============================================
+# Example Usage (for reference)
+# ============================================
+
+# Example: Training a 7B parameter model on 8xH100 cluster
+# cai:LLMTraining a cai:TrainingJob ;
+#   rdfs:label "LLM Training Job" ;
+#   cai:runsOn cai:H100Cluster ;
+#   cai:trainsOn cai:PretrainingDataset ;
+#   cai:producesModel cai:LLM7B ;
+#   cai:jobStatus "running" ;
+#   cai:startedAt "2025-11-09T00:00:00Z"^^xsd:dateTime ;
+#   cai:epochs 3 ;
+#   cai:batchSize 256 ;
+#   cai:learningRate 0.0001 ;
+#   cai:loss 2.3 ;
+#   cai:accuracy 0.67 .
+#
+# cai:H100Cluster a cai:Cluster ;
+#   rdfs:label "8xH100 Training Cluster" ;
+#   cai:nodeCount 8 ;
+#   cai:topology "ring" .
+#
+# cai:H100Node1 a cai:H100Instance ;
+#   rdfs:label "H100 Node 1" ;
+#   cai:partOfCluster cai:H100Cluster ;
+#   cai:gpuMemory 80 ;
+#   cai:computeCapability "9.0" ;
+#   cai:instanceType "p5.48xlarge" ;
+#   cai:pricePerHour 49.00 .
+#
+# cai:LLM7B a cai:Model ;
+#   rdfs:label "7B Parameter LLM" ;
+#   cai:framework "PyTorch" ;
+#   cai:modelSize 13.5 ;
+#   cai:parameterCount 7000 ;
+#   cai:version "v1.0" ;
+#   cai:storagePath "s3://models/llm-7b-v1.0/" .
+#
+# cai:PretrainingDataset a cai:Dataset ;
+#   rdfs:label "Pretraining Dataset" ;
+#   cai:datasetSize 1000000000 ;
+#   cai:storagePath "s3://datasets/pretrain/" .
+#
+# cai:InferenceEndpoint a cai:Endpoint ;
+#   rdfs:label "LLM Inference Endpoint" ;
+#   cai:servesModel cai:LLM7B ;
+#   cai:requestsPerSecond 150.0 ;
+#   cai:latencyMs 45.0 .
+
+# Receipt: hash(compute_ai_ontology_v1) = 8f3c9e2a

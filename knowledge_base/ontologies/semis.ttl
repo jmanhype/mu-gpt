@@ -1,0 +1,334 @@
+# Semiconductor Supply Chain Ontology
+# Models chip sectors, observations, and actions in the semiconductor ecosystem
+
+@prefix semis: <http://semiconductor.org/schema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix kgs:   <http://knowledgegeometry.org/schema#> .
+
+# ============================================
+# Core Semiconductor Classes
+# ============================================
+
+semis:Sector a rdfs:Class ;
+  rdfs:label "Sector" ;
+  rdfs:comment "A sector in the semiconductor supply chain (design, fab, assembly, testing)" .
+
+semis:Company a rdfs:Class ;
+  rdfs:label "Company" ;
+  rdfs:comment "A company operating in the semiconductor industry" .
+
+semis:Observation a rdfs:Class ;
+  rdfs:label "Observation" ;
+  rdfs:comment "Market observation or signal (price, capacity, demand)" .
+
+semis:Action a rdfs:Class ;
+  rdfs:label "Action" ;
+  rdfs:comment "Strategic action taken in response to observations" .
+
+semis:ChipArchitecture a rdfs:Class ;
+  rdfs:label "Chip Architecture" ;
+  rdfs:comment "A chip design architecture (ARM, x86, RISC-V)" .
+
+semis:ProcessNode a rdfs:Class ;
+  rdfs:label "Process Node" ;
+  rdfs:comment "Manufacturing process node (7nm, 5nm, 3nm)" .
+
+semis:Market a rdfs:Class ;
+  rdfs:label "Market" ;
+  rdfs:comment "Target market for semiconductors (mobile, datacenter, automotive)" .
+
+# ============================================
+# Sector Taxonomy
+# ============================================
+
+semis:DesignSector a semis:Sector ;
+  rdfs:label "Design Sector" ;
+  rdfs:comment "Companies that design chips but don't manufacture (fabless)" .
+
+semis:FabricationSector a semis:Sector ;
+  rdfs:label "Fabrication Sector" ;
+  rdfs:comment "Companies that manufacture semiconductors (fabs, foundries)" .
+
+semis:AssemblySector a semis:Sector ;
+  rdfs:label "Assembly Sector" ;
+  rdfs:comment "Companies that package and assemble chips (OSAT)" .
+
+semis:TestingSector a semis:Sector ;
+  rdfs:label "Testing Sector" ;
+  rdfs:comment "Companies that test and validate chips" .
+
+semis:EquipmentSector a semis:Sector ;
+  rdfs:label "Equipment Sector" ;
+  rdfs:comment "Companies that manufacture semiconductor equipment" .
+
+semis:MaterialsSector a semis:Sector ;
+  rdfs:label "Materials Sector" ;
+  rdfs:comment "Companies that supply materials (silicon wafers, chemicals)" .
+
+# ============================================
+# Semiconductor Properties
+# ============================================
+
+semis:operatesInSector a rdf:Property ;
+  rdfs:label "operates in sector" ;
+  rdfs:domain semis:Company ;
+  rdfs:range semis:Sector ;
+  rdfs:comment "Sector(s) where company operates" .
+
+semis:observes a rdf:Property ;
+  rdfs:label "observes" ;
+  rdfs:domain semis:Company ;
+  rdfs:range semis:Observation ;
+  rdfs:comment "Market observation made by company" .
+
+semis:takesAction a rdf:Property ;
+  rdfs:label "takes action" ;
+  rdfs:domain semis:Company ;
+  rdfs:range semis:Action ;
+  rdfs:comment "Strategic action taken by company" .
+
+semis:triggeredBy a rdf:Property ;
+  rdfs:label "triggered by" ;
+  rdfs:domain semis:Action ;
+  rdfs:range semis:Observation ;
+  rdfs:comment "Observation that triggered this action" .
+
+semis:targetsMarket a rdf:Property ;
+  rdfs:label "targets market" ;
+  rdfs:domain semis:Company ;
+  rdfs:range semis:Market ;
+  rdfs:comment "Market segment targeted by company" .
+
+semis:usesArchitecture a rdf:Property ;
+  rdfs:label "uses architecture" ;
+  rdfs:domain semis:Company ;
+  rdfs:range semis:ChipArchitecture ;
+  rdfs:comment "Chip architecture used by company" .
+
+semis:manufacturesAt a rdf:Property ;
+  rdfs:label "manufactures at" ;
+  rdfs:domain semis:Company ;
+  rdfs:range semis:ProcessNode ;
+  rdfs:comment "Process node used for manufacturing" .
+
+# Observation Properties
+
+semis:observationType a rdf:Property ;
+  rdfs:label "observation type" ;
+  rdfs:domain semis:Observation ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Type of observation (price, capacity, demand, technology)" .
+
+semis:observedValue a rdf:Property ;
+  rdfs:label "observed value" ;
+  rdfs:domain semis:Observation ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Numeric value of observation" .
+
+semis:observedAt a rdf:Property ;
+  rdfs:label "observed at" ;
+  rdfs:domain semis:Observation ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "Timestamp of observation" .
+
+# Action Properties
+
+semis:actionType a rdf:Property ;
+  rdfs:label "action type" ;
+  rdfs:domain semis:Action ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Type of action (expand, contract, pivot, invest)" .
+
+semis:actionCost a rdf:Property ;
+  rdfs:label "action cost" ;
+  rdfs:domain semis:Action ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Cost of action in millions USD" .
+
+semis:actionStartDate a rdf:Property ;
+  rdfs:label "action start date" ;
+  rdfs:domain semis:Action ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "When action begins" .
+
+semis:actionDuration a rdf:Property ;
+  rdfs:label "action duration" ;
+  rdfs:domain semis:Action ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Duration of action in months" .
+
+# Company Properties
+
+semis:marketCap a rdf:Property ;
+  rdfs:label "market cap" ;
+  rdfs:domain semis:Company ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Market capitalization in billions USD" .
+
+semis:revenue a rdf:Property ;
+  rdfs:label "revenue" ;
+  rdfs:domain semis:Company ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Annual revenue in millions USD" .
+
+semis:foundedYear a rdf:Property ;
+  rdfs:label "founded year" ;
+  rdfs:domain semis:Company ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Year company was founded" .
+
+# Process Node Properties
+
+semis:nodeSize a rdf:Property ;
+  rdfs:label "node size" ;
+  rdfs:domain semis:ProcessNode ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Process node size in nanometers" .
+
+semis:transistorDensity a rdf:Property ;
+  rdfs:label "transistor density" ;
+  rdfs:domain semis:ProcessNode ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Transistors per square millimeter in millions" .
+
+# ============================================
+# SHACL Shapes for Semiconductor Validation
+# ============================================
+
+semis:CompanyShape a sh:NodeShape ;
+  sh:targetClass semis:Company ;
+  sh:property [
+    sh:path semis:operatesInSector ;
+    sh:minCount 1 ;
+    sh:class semis:Sector ;
+    sh:message "Company must operate in at least one sector"
+  ] ;
+  sh:property [
+    sh:path semis:revenue ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:message "Revenue must be non-negative"
+  ] ;
+  sh:property [
+    sh:path semis:foundedYear ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1900 ;
+    sh:maxInclusive 2100 ;
+    sh:message "Founded year must be between 1900 and 2100"
+  ] .
+
+semis:ObservationShape a sh:NodeShape ;
+  sh:targetClass semis:Observation ;
+  sh:property [
+    sh:path semis:observationType ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:in ("price" "capacity" "demand" "technology" "competition") ;
+    sh:message "Observation type must be price, capacity, demand, technology, or competition"
+  ] ;
+  sh:property [
+    sh:path semis:observedAt ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTime ;
+    sh:message "Observation must have exactly one timestamp"
+  ] ;
+  sh:property [
+    sh:path semis:observedValue ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:message "Observed value must be numeric if present"
+  ] .
+
+semis:ActionShape a sh:NodeShape ;
+  sh:targetClass semis:Action ;
+  sh:property [
+    sh:path semis:actionType ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:in ("expand" "contract" "pivot" "invest" "divest" "partner") ;
+    sh:message "Action type must be expand, contract, pivot, invest, divest, or partner"
+  ] ;
+  sh:property [
+    sh:path semis:triggeredBy ;
+    sh:minCount 1 ;
+    sh:class semis:Observation ;
+    sh:message "Action must be triggered by at least one observation"
+  ] ;
+  sh:property [
+    sh:path semis:actionCost ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:message "Action cost must be non-negative"
+  ] ;
+  sh:property [
+    sh:path semis:actionDuration ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1 ;
+    sh:message "Action duration must be at least 1 month"
+  ] .
+
+semis:ProcessNodeShape a sh:NodeShape ;
+  sh:targetClass semis:ProcessNode ;
+  sh:property [
+    sh:path semis:nodeSize ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1 ;
+    sh:maxInclusive 1000 ;
+    sh:message "Node size must be between 1 and 1000 nanometers"
+  ] ;
+  sh:property [
+    sh:path semis:transistorDensity ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.1 ;
+    sh:message "Transistor density must be positive"
+  ] .
+
+# ============================================
+# Example Usage (for reference)
+# ============================================
+
+# Example: NVIDIA observes datacenter demand surge and expands capacity
+# semis:NVIDIA a semis:Company ;
+#   rdfs:label "NVIDIA Corporation" ;
+#   semis:operatesInSector semis:DesignSector ;
+#   semis:targetsMarket semis:DatacenterMarket ;
+#   semis:usesArchitecture semis:ARMArchitecture ;
+#   semis:marketCap 3000.0 ;
+#   semis:revenue 60000.0 ;
+#   semis:foundedYear 1993 ;
+#   semis:observes semis:DatacenterDemandSurge ;
+#   semis:takesAction semis:CapacityExpansion .
+#
+# semis:DatacenterDemandSurge a semis:Observation ;
+#   rdfs:label "AI Datacenter Demand Surge" ;
+#   semis:observationType "demand" ;
+#   semis:observedValue 250.0 ;
+#   semis:observedAt "2025-11-01T00:00:00Z"^^xsd:dateTime .
+#
+# semis:CapacityExpansion a semis:Action ;
+#   rdfs:label "Increase GPU Production" ;
+#   semis:actionType "expand" ;
+#   semis:triggeredBy semis:DatacenterDemandSurge ;
+#   semis:actionCost 5000.0 ;
+#   semis:actionStartDate "2025-12-01T00:00:00Z"^^xsd:dateTime ;
+#   semis:actionDuration 18 .
+#
+# semis:Node5nm a semis:ProcessNode ;
+#   rdfs:label "5nm Process" ;
+#   semis:nodeSize 5 ;
+#   semis:transistorDensity 138.0 .
+
+# Receipt: hash(semis_ontology_v1) = 2f9e3a8c

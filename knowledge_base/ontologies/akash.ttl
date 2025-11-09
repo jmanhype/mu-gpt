@@ -1,0 +1,293 @@
+# Akash Decentralized Compute Ontology
+# Models compute resources, deployments, budgets, and rate limits
+
+@prefix akash: <http://akash.network/schema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix kgs:   <http://knowledgegeometry.org/schema#> .
+
+# ============================================
+# Core Akash Classes
+# ============================================
+
+akash:Deployment a rdfs:Class ;
+  rdfs:label "Deployment" ;
+  rdfs:comment "A compute deployment on Akash network" .
+
+akash:Provider a rdfs:Class ;
+  rdfs:label "Provider" ;
+  rdfs:comment "A compute resource provider on Akash network" .
+
+akash:Lease a rdfs:Class ;
+  rdfs:label "Lease" ;
+  rdfs:comment "An active lease agreement between tenant and provider" .
+
+akash:Budget a rdfs:Class ;
+  rdfs:label "Budget" ;
+  rdfs:comment "Spending limits and rate constraints (Chatman Constant)" .
+
+akash:Resource a rdfs:Class ;
+  rdfs:label "Resource" ;
+  rdfs:comment "Compute resources (CPU, memory, storage, bandwidth)" .
+
+akash:Bid a rdfs:Class ;
+  rdfs:label "Bid" ;
+  rdfs:comment "Provider bid for deployment resources" .
+
+# ============================================
+# Akash Properties
+# ============================================
+
+akash:hasLease a rdf:Property ;
+  rdfs:label "has lease" ;
+  rdfs:domain akash:Deployment ;
+  rdfs:range akash:Lease ;
+  rdfs:comment "Links deployment to its active lease" .
+
+akash:hasProvider a rdf:Property ;
+  rdfs:label "has provider" ;
+  rdfs:domain akash:Lease ;
+  rdfs:range akash:Provider ;
+  rdfs:comment "Provider serving this lease" .
+
+akash:hasBudget a rdf:Property ;
+  rdfs:label "has budget" ;
+  rdfs:domain akash:Deployment ;
+  rdfs:range akash:Budget ;
+  rdfs:comment "Budget constraints for deployment" .
+
+akash:requiresResource a rdf:Property ;
+  rdfs:label "requires resource" ;
+  rdfs:domain akash:Deployment ;
+  rdfs:range akash:Resource ;
+  rdfs:comment "Resources required by deployment" .
+
+akash:submitsBid a rdf:Property ;
+  rdfs:label "submits bid" ;
+  rdfs:domain akash:Provider ;
+  rdfs:range akash:Bid ;
+  rdfs:comment "Bid submitted by provider" .
+
+# Budget/Rate Limit Properties (Chatman Constant)
+
+akash:maxSpendPerMonth a rdf:Property ;
+  rdfs:label "max spend per month" ;
+  rdfs:domain akash:Budget ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Maximum monthly spend in AKT" .
+
+akash:maxTicksPerHour a rdf:Property ;
+  rdfs:label "max ticks per hour" ;
+  rdfs:domain akash:Budget ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Rate limit: maximum operations per hour" .
+
+akash:currentSpend a rdf:Property ;
+  rdfs:label "current spend" ;
+  rdfs:domain akash:Budget ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Current accumulated spend" .
+
+akash:ticksUsed a rdf:Property ;
+  rdfs:label "ticks used" ;
+  rdfs:domain akash:Budget ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Ticks consumed in current window" .
+
+# Resource Specifications
+
+akash:cpu a rdf:Property ;
+  rdfs:label "CPU cores" ;
+  rdfs:domain akash:Resource ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Number of CPU cores" .
+
+akash:memory a rdf:Property ;
+  rdfs:label "memory" ;
+  rdfs:domain akash:Resource ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Memory in megabytes" .
+
+akash:storage a rdf:Property ;
+  rdfs:label "storage" ;
+  rdfs:domain akash:Resource ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Storage in megabytes" .
+
+akash:bandwidth a rdf:Property ;
+  rdfs:label "bandwidth" ;
+  rdfs:domain akash:Resource ;
+  rdfs:range xsd:integer ;
+  rdfs:comment "Bandwidth in megabits per second" .
+
+# Bid Properties
+
+akash:bidPrice a rdf:Property ;
+  rdfs:label "bid price" ;
+  rdfs:domain akash:Bid ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "Bid price in AKT per block" .
+
+akash:bidForDeployment a rdf:Property ;
+  rdfs:label "bid for deployment" ;
+  rdfs:domain akash:Bid ;
+  rdfs:range akash:Deployment ;
+  rdfs:comment "Deployment this bid is for" .
+
+# Status Properties
+
+akash:status a rdf:Property ;
+  rdfs:label "status" ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Current status (active, closed, pending)" .
+
+akash:createdAt a rdf:Property ;
+  rdfs:label "created at" ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "Timestamp of creation" .
+
+# ============================================
+# SHACL Shapes for Akash Validation
+# ============================================
+
+akash:DeploymentShape a sh:NodeShape ;
+  sh:targetClass akash:Deployment ;
+  sh:property [
+    sh:path akash:hasBudget ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class akash:Budget ;
+    sh:message "Deployment must have exactly one budget"
+  ] ;
+  sh:property [
+    sh:path akash:requiresResource ;
+    sh:minCount 1 ;
+    sh:class akash:Resource ;
+    sh:message "Deployment must specify required resources"
+  ] ;
+  sh:property [
+    sh:path akash:status ;
+    sh:in ("active" "closed" "pending") ;
+    sh:message "Deployment status must be active, closed, or pending"
+  ] .
+
+akash:BudgetShape a sh:NodeShape ;
+  sh:targetClass akash:Budget ;
+  sh:property [
+    sh:path akash:maxSpendPerMonth ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:message "Budget must have positive max spend per month"
+  ] ;
+  sh:property [
+    sh:path akash:maxTicksPerHour ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 1 ;
+    sh:message "Budget must have positive tick rate limit"
+  ] ;
+  sh:property [
+    sh:path akash:currentSpend ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.0 ;
+    sh:message "Current spend must be non-negative"
+  ] .
+
+akash:ResourceShape a sh:NodeShape ;
+  sh:targetClass akash:Resource ;
+  sh:property [
+    sh:path akash:cpu ;
+    sh:minCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.1 ;
+    sh:message "CPU must be at least 0.1 cores"
+  ] ;
+  sh:property [
+    sh:path akash:memory ;
+    sh:minCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 128 ;
+    sh:message "Memory must be at least 128MB"
+  ] ;
+  sh:property [
+    sh:path akash:storage ;
+    sh:minCount 1 ;
+    sh:datatype xsd:integer ;
+    sh:minInclusive 512 ;
+    sh:message "Storage must be at least 512MB"
+  ] .
+
+akash:LeaseShape a sh:NodeShape ;
+  sh:targetClass akash:Lease ;
+  sh:property [
+    sh:path akash:hasProvider ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class akash:Provider ;
+    sh:message "Lease must have exactly one provider"
+  ] ;
+  sh:property [
+    sh:path akash:status ;
+    sh:in ("active" "closed") ;
+    sh:message "Lease status must be active or closed"
+  ] .
+
+akash:BidShape a sh:NodeShape ;
+  sh:targetClass akash:Bid ;
+  sh:property [
+    sh:path akash:bidPrice ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:minInclusive 0.001 ;
+    sh:message "Bid price must be at least 0.001 AKT"
+  ] ;
+  sh:property [
+    sh:path akash:bidForDeployment ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class akash:Deployment ;
+    sh:message "Bid must be for exactly one deployment"
+  ] .
+
+# ============================================
+# Example Usage (for reference)
+# ============================================
+
+# Example: GPU deployment with budget constraints
+# akash:GPUDeployment a akash:Deployment ;
+#   rdfs:label "ML Training Deployment" ;
+#   akash:status "active" ;
+#   akash:hasBudget akash:Budget1 ;
+#   akash:requiresResource akash:GPUResource1 ;
+#   akash:hasLease akash:Lease1 ;
+#   akash:createdAt "2025-11-09T00:00:00Z"^^xsd:dateTime .
+#
+# akash:Budget1 a akash:Budget ;
+#   akash:maxSpendPerMonth 100.0 ;
+#   akash:maxTicksPerHour 1000 ;
+#   akash:currentSpend 15.5 ;
+#   akash:ticksUsed 247 .
+#
+# akash:GPUResource1 a akash:Resource ;
+#   rdfs:label "GPU Instance" ;
+#   akash:cpu 8.0 ;
+#   akash:memory 32768 ;
+#   akash:storage 102400 ;
+#   akash:bandwidth 1000 .
+#
+# akash:Lease1 a akash:Lease ;
+#   akash:hasProvider akash:Provider42 ;
+#   akash:status "active" ;
+#   akash:createdAt "2025-11-09T00:10:00Z"^^xsd:dateTime .
+#
+# akash:Provider42 a akash:Provider ;
+#   rdfs:label "GPU Provider 42" .
+
+# Receipt: hash(akash_ontology_v1) = 9a3e8f2c

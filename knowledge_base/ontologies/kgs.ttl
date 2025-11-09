@@ -1,0 +1,202 @@
+# Knowledge Geometry System (KGS) — Meta-Ontology
+# Defines the structure for building domain ontologies
+
+@prefix kgs:  <http://knowledgegeometry.org/schema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+
+# ============================================
+# Core KGS Classes
+# ============================================
+
+kgs:Node a rdfs:Class ;
+  rdfs:label "KGS Node" ;
+  rdfs:comment "A node in the knowledge graph representing an entity or concept" .
+
+kgs:Edge a rdfs:Class ;
+  rdfs:label "KGS Edge" ;
+  rdfs:comment "A relation between two nodes" .
+
+kgs:Field a rdfs:Class ;
+  rdfs:label "KGS Field" ;
+  rdfs:comment "A geometric field representing a continuous property across the graph" .
+
+kgs:Section a rdfs:Class ;
+  rdfs:label "KGS Section" ;
+  rdfs:comment "A section of the knowledge geometry (analogous to Γ/sections)" .
+
+kgs:Receipt a rdfs:Class ;
+  rdfs:label "Provenance Receipt" ;
+  rdfs:comment "Cryptographic-like hash for determinism and auditability" .
+
+# ============================================
+# KGS Properties
+# ============================================
+
+kgs:hasNode a rdf:Property ;
+  rdfs:label "has node" ;
+  rdfs:domain kgs:Section ;
+  rdfs:range kgs:Node ;
+  rdfs:comment "Links a section to its constituent nodes" .
+
+kgs:hasEdge a rdf:Property ;
+  rdfs:label "has edge" ;
+  rdfs:domain kgs:Section ;
+  rdfs:range kgs:Edge ;
+  rdfs:comment "Links a section to its constituent edges" .
+
+kgs:source a rdf:Property ;
+  rdfs:label "source node" ;
+  rdfs:domain kgs:Edge ;
+  rdfs:range kgs:Node ;
+  rdfs:comment "The source node of an edge" .
+
+kgs:target a rdf:Property ;
+  rdfs:label "target node" ;
+  rdfs:domain kgs:Edge ;
+  rdfs:range kgs:Node ;
+  rdfs:comment "The target node of an edge" .
+
+kgs:fieldValue a rdf:Property ;
+  rdfs:label "field value" ;
+  rdfs:domain kgs:Node ;
+  rdfs:range xsd:decimal ;
+  rdfs:comment "The value of a field at a specific node" .
+
+kgs:hash a rdf:Property ;
+  rdfs:label "receipt hash" ;
+  rdfs:domain kgs:Receipt ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Cryptographic hash for provenance" .
+
+kgs:timestamp a rdf:Property ;
+  rdfs:label "timestamp" ;
+  rdfs:domain kgs:Receipt ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "When the receipt was generated" .
+
+kgs:describes a rdf:Property ;
+  rdfs:label "describes" ;
+  rdfs:domain kgs:Receipt ;
+  rdfs:range rdfs:Resource ;
+  rdfs:comment "The resource this receipt provides provenance for" .
+
+# ============================================
+# Ontology Metadata Properties
+# ============================================
+
+kgs:version a rdf:Property ;
+  rdfs:label "ontology version" ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Semantic version of the ontology" .
+
+kgs:author a rdf:Property ;
+  rdfs:label "ontology author" ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Creator of the ontology" .
+
+kgs:license a rdf:Property ;
+  rdfs:label "license" ;
+  rdfs:range xsd:string ;
+  rdfs:comment "License under which the ontology is published" .
+
+kgs:baseURI a rdf:Property ;
+  rdfs:label "base URI" ;
+  rdfs:range xsd:anyURI ;
+  rdfs:comment "Base URI for the ontology namespace" .
+
+# ============================================
+# SHACL Shapes for KGS Validation
+# ============================================
+
+kgs:NodeShape a sh:NodeShape ;
+  sh:targetClass kgs:Node ;
+  sh:property [
+    sh:path kgs:fieldValue ;
+    sh:datatype xsd:decimal ;
+    sh:message "Field value must be a decimal if present"
+  ] .
+
+kgs:EdgeShape a sh:NodeShape ;
+  sh:targetClass kgs:Edge ;
+  sh:property [
+    sh:path kgs:source ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class kgs:Node ;
+    sh:message "Edge must have exactly one source node"
+  ] ;
+  sh:property [
+    sh:path kgs:target ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class kgs:Node ;
+    sh:message "Edge must have exactly one target node"
+  ] .
+
+kgs:SectionShape a sh:NodeShape ;
+  sh:targetClass kgs:Section ;
+  sh:property [
+    sh:path kgs:hasNode ;
+    sh:class kgs:Node ;
+    sh:message "Section nodes must be of type kgs:Node"
+  ] ;
+  sh:property [
+    sh:path kgs:hasEdge ;
+    sh:class kgs:Edge ;
+    sh:message "Section edges must be of type kgs:Edge"
+  ] .
+
+kgs:ReceiptShape a sh:NodeShape ;
+  sh:targetClass kgs:Receipt ;
+  sh:property [
+    sh:path kgs:hash ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:pattern "^[0-9a-f]{8}$" ;
+    sh:message "Receipt hash must be exactly 8 hexadecimal characters"
+  ] ;
+  sh:property [
+    sh:path kgs:timestamp ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTime ;
+    sh:message "Receipt must have exactly one timestamp"
+  ] ;
+  sh:property [
+    sh:path kgs:describes ;
+    sh:minCount 1 ;
+    sh:message "Receipt must describe at least one resource"
+  ] .
+
+# ============================================
+# Example Usage (for reference)
+# ============================================
+
+# Example: A simple knowledge graph section
+# kgs:ExampleSection a kgs:Section ;
+#   kgs:hasNode kgs:Node1, kgs:Node2 ;
+#   kgs:hasEdge kgs:Edge1 .
+#
+# kgs:Node1 a kgs:Node ;
+#   rdfs:label "Concept A" ;
+#   kgs:fieldValue 1.0 .
+#
+# kgs:Node2 a kgs:Node ;
+#   rdfs:label "Concept B" ;
+#   kgs:fieldValue 2.0 .
+#
+# kgs:Edge1 a kgs:Edge ;
+#   kgs:source kgs:Node1 ;
+#   kgs:target kgs:Node2 ;
+#   rdfs:label "relates to" .
+#
+# kgs:ExampleReceipt a kgs:Receipt ;
+#   kgs:hash "3f8e9a2c" ;
+#   kgs:timestamp "2025-11-08T23:00:00Z"^^xsd:dateTime ;
+#   kgs:describes kgs:ExampleSection .
+
+# Receipt: hash(kgs_ontology_v1) = 7e3f9a2c
