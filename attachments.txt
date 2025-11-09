@@ -30,6 +30,12 @@ Upload these files to the custom GPT's knowledge base.
    - Model artifacts and dependencies
    - Resource allocation patterns
 
+6. **use_cases/vc_saas_platform.md** (RECOMMENDED)
+   - Complete walkthrough: ontology → backend → frontend → deployment
+   - Demonstrates ACHI methodology for building fundable SaaS
+   - Shows ggen workflow with concrete business model
+   - Reference for when users ask "how do I build something real?"
+
 ## File Locations
 
 If these files are not in the current repository, check:
